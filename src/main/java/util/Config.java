@@ -11,11 +11,13 @@ public class Config {
 
     private final static int PORT = 50050;
 
+    private final static String[] FILES = new String[] {"f1.txt", "f2.txt", "f3.txt", "f4.txt"};
+
     private static volatile Config instance = null;
 
     private List<PhysicalNode> servers = new ArrayList<>();
 
-    private List<PhysicalNode> clients = new ArrayList<>();
+    private List<String> files = new ArrayList<>();
 
     private String address;
 
@@ -62,16 +64,8 @@ public class Config {
         return servers;
     }
 
-    public void setServers(List<PhysicalNode> servers) {
-        this.servers = servers;
-    }
-
-    public List<PhysicalNode> getClients() {
-        return clients;
-    }
-
-    public void setClients(List<PhysicalNode> clients) {
-        this.clients = clients;
+    public List<String> getFiles() {
+        return files;
     }
 
     private void loadConfig() {
@@ -80,13 +74,10 @@ public class Config {
             for (String line : lines) {
                 String[] pair = line.split(" ");
                 PhysicalNode node = new PhysicalNode(pair[0], pair[1], PORT);
-                if (node.getId().toLowerCase().startsWith("server")) {
-                    servers.add(node);
-                }
-                else {
-                    clients.add(node);
-                }
+                servers.add(node);
             }
+
+            files = Arrays.asList(FILES);
         } catch (IOException e) {
             System.out.println("Config file not found or does not follow the standard format");
         }
