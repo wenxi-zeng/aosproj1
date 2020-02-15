@@ -14,13 +14,9 @@ public class Request extends Transportable implements Serializable
     private String header;
     private String sender;
     private String receiver;
-    private String followup;
+    private String type;
     private String attachment;
-    private long epoch;
-    private String token;
     private long timestamp;
-
-    private Object largeAttachment;
 
     private transient float processTime = .0f;
 
@@ -32,7 +28,6 @@ public class Request extends Transportable implements Serializable
      */
     public Request() {
         super();
-        token = UUID.randomUUID().toString();
         timestamp = System.currentTimeMillis();
     }
 
@@ -75,16 +70,16 @@ public class Request extends Transportable implements Serializable
         return this;
     }
 
-    public String getFollowup() {
-        return followup;
+    public String getType() {
+        return type;
     }
 
-    public void setFollowup(String followup) {
-        this.followup = followup;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public Request withFollowup(String followup) {
-        this.followup = followup;
+    public Request withType(String type) {
+        this.type = type;
         return this;
     }
 
@@ -98,32 +93,6 @@ public class Request extends Transportable implements Serializable
 
     public Request withAttachment(String attachment) {
         this.attachment = attachment;
-        return this;
-    }
-
-    public long getEpoch() {
-        return epoch;
-    }
-
-    public void setEpoch(long epoch) {
-        this.epoch = epoch;
-    }
-
-    public Request withEpoch(long epoch) {
-        this.epoch = epoch;
-        return this;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public Request withToken(String token) {
-        this.token = token;
         return this;
     }
 
@@ -150,19 +119,6 @@ public class Request extends Transportable implements Serializable
         return this;
     }
 
-    public Object getLargeAttachment() {
-        return largeAttachment;
-    }
-
-    public void setLargeAttachment(Object largeAttachment) {
-        this.largeAttachment = largeAttachment;
-    }
-
-    public Request withLargeAttachment(Object largeAttachment) {
-        this.largeAttachment = largeAttachment;
-        return this;
-    }
-
     public float getProcessTime() {
         return processTime;
     }
@@ -175,19 +131,17 @@ public class Request extends Transportable implements Serializable
     public String toString() {
         return new ToStringBuilder(this)
                         .append("        \n").append("header", header)
-                        .append("        \n").append("token", token)
                         .append("        \n").append("timestamp", timestamp)
                         .append("        \n").append("sender", sender)
                         .append("        \n").append("receiver", receiver)
-                        .append("        \n").append("followup", followup)
+                        .append("        \n").append("type", type)
                         .append("        \n").append("attachment", attachment)
-                        .append("        \n").append("epoch", epoch)
                         .append("        \n").toString();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(timestamp).append(sender).append(followup).append(receiver).append(token).append(epoch).append(attachment).append(header).toHashCode();
+        return new HashCodeBuilder().append(timestamp).append(sender).append(type).append(receiver).append(attachment).append(header).toHashCode();
     }
 
     @Override
@@ -199,7 +153,7 @@ public class Request extends Transportable implements Serializable
             return false;
         }
         Request rhs = ((Request) other);
-        return new EqualsBuilder().append(timestamp, rhs.timestamp).append(sender, rhs.sender).append(followup, rhs.followup).append(receiver, rhs.receiver).append(token, rhs.token).append(epoch, rhs.epoch).append(attachment, rhs.attachment).append(header, rhs.header).isEquals();
+        return new EqualsBuilder().append(timestamp, rhs.timestamp).append(sender, rhs.sender).append(type, rhs.type).append(receiver, rhs.receiver).append(attachment, rhs.attachment).append(header, rhs.header).isEquals();
     }
 
     public String toCommand() {
