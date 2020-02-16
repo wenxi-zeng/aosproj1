@@ -1,10 +1,12 @@
 package drivers;
 
+import clock.AckVector;
 import commands.CommonCommand;
 import commonmodels.PhysicalNode;
 import commonmodels.transport.InvalidRequestException;
 import commonmodels.transport.Request;
 import commonmodels.transport.Response;
+import managers.FileManager;
 import org.apache.commons.lang3.StringUtils;
 import socket.JsonProtocolManager;
 import socket.SocketClient;
@@ -20,6 +22,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 public class FileServer implements SocketServer.EventHandler, SocketClient.ServerCallBack{
 
@@ -32,6 +35,22 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
     private int port;
 
     private ExecutorService executor = Executors.newFixedThreadPool(2);
+
+    private Semaphore semaphore = new Semaphore(1);
+
+    private SocketClient.ServerCallBack serverCallBack = new SocketClient.ServerCallBack() {
+        @Override
+        public void onResponse(Request request, Response response) {
+            SimpleLog.v(request.getSender() + " receives a successful ack from " + request.getReceiver());
+            semaphore.release();
+        }
+
+        @Override
+        public void onFailure(Request request, String error) {
+            SimpleLog.v(request.getSender() + " receives a failed ack from " + request.getReceiver() + ", error message: " + error);
+            semaphore.release();
+        }
+    };
 
     public static void main(String[] args){
         if (args.length > 1)
@@ -100,6 +119,7 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
         } catch (IOException e) {
             e.printStackTrace();
         }
+        initSubscriptions();
     }
 
     public void stop() {
@@ -130,10 +150,10 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
     }
 
     private static String getAddress() {
-        try(final DatagramSocket socket = new DatagramSocket()){
-            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
-            return socket.getLocalAddress().getHostAddress();
-        } catch (UnknownHostException | SocketException e) {
+        try {
+            InetAddress id = InetAddress.getLocalHost();
+            return id.getHostName();
+        } catch (UnknownHostException e) {
             e.printStackTrace();
         }
 
@@ -177,6 +197,25 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
     @Override
     public void onFailure(Request request, String error) {
         SimpleLog.i(error);
+    }
+
+    public void broadcast(Request request) {
+        for (PhysicalNode server : Config.getInstance().getServers()) {
+            try {
+                request.setSender(Config.getInstance().getAddress());
+                request.setReceiver(server.getAddress());
+                semaphore.acquire();
+                send(server.getAddress(), server.getPort(), request, serverCallBack);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void initSubscriptions() {
+        AckVector.getInstance().init(Config.getInstance().getServers());
+        FileManager.getInstance().init(Config.getInstance().getFiles());
+        AckVector.getInstance().addObserver(FileManager.getInstance());
     }
 
 }

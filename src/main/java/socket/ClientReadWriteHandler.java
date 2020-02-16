@@ -1,5 +1,6 @@
 package socket;
 
+import clock.AckVector;
 import clock.LogicClock;
 import commonmodels.Transportable;
 import commonmodels.transport.Request;
@@ -71,6 +72,7 @@ public class ClientReadWriteHandler implements Runnable, ClientHandler {
         if (o instanceof Response) {
             Response resp = (Response) o;
             LogicClock.getInstance().increment(resp.getTimestamp());
+            AckVector.getInstance().updateClock(currentData.getReceiver(), resp.getTimestamp());
             callBack.onResponse(currentData, resp);
         }
         else {

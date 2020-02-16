@@ -1,5 +1,6 @@
 package commonmodels.transport;
 
+import clock.LogicClock;
 import commonmodels.Transportable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -7,6 +8,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 public class Request extends Transportable implements Serializable
 {
@@ -18,6 +20,8 @@ public class Request extends Transportable implements Serializable
     private String attachment;
     private long timestamp;
 
+    private transient Semaphore processed;
+
     private transient float processTime = .0f;
 
     private final static long serialVersionUID = -2162237185763801887L;
@@ -28,7 +32,7 @@ public class Request extends Transportable implements Serializable
      */
     public Request() {
         super();
-        timestamp = System.currentTimeMillis();
+        timestamp = LogicClock.getInstance().getClock();
     }
 
     public String getHeader() {
@@ -125,6 +129,14 @@ public class Request extends Transportable implements Serializable
 
     public void addProcessTime(float processTime) {
         this.processTime += processTime;
+    }
+
+    public Semaphore getProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(Semaphore processed) {
+        this.processed = processed;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package managers;
 
+import commonmodels.transport.Request;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,5 +45,11 @@ public class FileManager implements Observer {
         for (FileWorker worker : map.values()) {
             worker.setClocks(clock);
         }
+    }
+
+    public void serve(Request request) {
+        FileWorker worker = map.get(request.getHeader());
+        if (worker != null)
+            worker.serve(request);
     }
 }

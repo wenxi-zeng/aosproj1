@@ -1,6 +1,7 @@
 package drivers;
 
 import clock.LogicClock;
+import commands.CommonCommand;
 import commonmodels.PhysicalNode;
 import commonmodels.transport.Request;
 import commonmodels.transport.Response;
@@ -9,6 +10,8 @@ import util.Config;
 import util.MathX;
 import util.SimpleLog;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -33,6 +36,16 @@ public class FileClient {
             semaphore.release();
         }
     };
+
+    public static void main(String[] args) {
+        FileClient client = new FileClient();
+        if (args.length == 0)
+            client.id = getAddress();
+        else
+            client.id = args[0];
+
+        client.start();
+    }
 
     public FileClient() {
         socketClient = SocketClient.getInstance();
@@ -69,7 +82,7 @@ public class FileClient {
                     .withReceiver(node.getId())
                     .withSender(id)
                     .withTimestamp(timestamp)
-                    .withType("APPEND");
+                    .withType(CommonCommand.APPEND.name());
 
             SimpleLog.v(id + " requests: " + " '" + request.getAttachment() + "'");
             socketClient.send(node.getAddress(), node.getPort(), request, callBack);
@@ -88,6 +101,17 @@ public class FileClient {
         generateRequest();
         onFinished();
         System.exit(0);
+    }
+
+    private static String getAddress() {
+        try {
+            InetAddress id = InetAddress.getLocalHost();
+            return id.getHostName();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private void onFinished(){

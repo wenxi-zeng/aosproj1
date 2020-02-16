@@ -1,5 +1,7 @@
 package clock;
 
+import commonmodels.PhysicalNode;
+
 import java.util.*;
 
 public class AckVector extends Observable {
@@ -24,9 +26,9 @@ public class AckVector extends Observable {
         return instance;
     }
 
-    public void init(List<String> nodes) {
-        for (String node : nodes)
-            vector.put(node, 0L);
+    public void init(List<PhysicalNode> nodes) {
+        for (PhysicalNode node : nodes)
+            vector.put(node.getAddress(), 0L);
     }
 
     public List<Long> getClocks() {

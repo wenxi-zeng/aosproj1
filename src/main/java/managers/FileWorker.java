@@ -2,7 +2,6 @@ package managers;
 
 import commonmodels.transport.Request;
 import util.FileHelper;
-import util.SimpleLog;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,7 +47,8 @@ public class FileWorker implements Runnable{
     private void operateFile(Request request) {
         try {
             FileHelper.append(request.getHeader(), request.getAttachment());
-            SimpleLog.v(request.getReceiver() + " receivers: " + request.getAttachment());
+            if (request.getProcessed() != null)
+                request.getProcessed().release();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -60,6 +60,14 @@ public class FileWorker implements Runnable{
         }
 
         return true;
+    }
+
+    public void serve(Request request) {
+        try {
+            queue.put(request);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setClocks(List<Long> clocks) {

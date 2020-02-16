@@ -74,6 +74,7 @@ public class Config {
             for (String line : lines) {
                 String[] pair = line.split(" ");
                 PhysicalNode node = new PhysicalNode(pair[0], pair[1], PORT);
+                if (node.getAddress().equals(address)) continue;
                 servers.add(node);
             }
 
