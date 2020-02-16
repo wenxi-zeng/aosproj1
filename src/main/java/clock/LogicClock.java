@@ -31,4 +31,9 @@ public class LogicClock {
     public void increment() {
         clock += DELTA;
     }
+
+    public void increment(long remoteClock) {
+        this.increment();
+        this.clock = Math.max(clock, remoteClock + DELTA);
+    }
 }

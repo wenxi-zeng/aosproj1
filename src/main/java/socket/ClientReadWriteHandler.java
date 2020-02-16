@@ -1,5 +1,6 @@
 package socket;
 
+import clock.LogicClock;
 import commonmodels.Transportable;
 import commonmodels.transport.Request;
 import commonmodels.transport.Response;
@@ -69,6 +70,7 @@ public class ClientReadWriteHandler implements Runnable, ClientHandler {
         Transportable o = JsonProtocolManager.getInstance().readGzip(byteArray);
         if (o instanceof Response) {
             Response resp = (Response) o;
+            LogicClock.getInstance().increment(resp.getTimestamp());
             callBack.onResponse(currentData, resp);
         }
         else {
@@ -142,6 +144,7 @@ public class ClientReadWriteHandler implements Runnable, ClientHandler {
             serveData();
         if (currentData == null) return;
 
+        LogicClock.getInstance().increment();
         this.socketChannel.write(_writeBuf);
 
         if (!_writeBuf[0].hasRemaining() && !_writeBuf[1].hasRemaining()) {
