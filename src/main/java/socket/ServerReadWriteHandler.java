@@ -1,6 +1,5 @@
 package socket;
 
-import clock.LogicClock;
 import commonmodels.Transportable;
 import commonmodels.transport.Request;
 import commonmodels.transport.Response;
@@ -9,7 +8,6 @@ import util.SimpleLog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -67,23 +65,13 @@ public class ServerReadWriteHandler implements Runnable, Attachable {
 
         Transportable o = JsonProtocolManager.getInstance().readGzip(byteArray);
         if (o instanceof Request) {
-            try {
-                Request req = (Request) o;
+            Request req = (Request) o;
+            Response response = eventHandler.onReceived(req);
+            _writeBuf[1] = JsonProtocolManager.getInstance().writeGzip(response);
+            _writeBuf[0].putInt(_writeBuf[1].remaining());
+            _writeBuf[0].flip();
 
-                InetSocketAddress inetSocketAddress = (InetSocketAddress) socketChannel.getRemoteAddress();
-                req.setSender(inetSocketAddress.getHostName() + ":" + inetSocketAddress.getPort());
-
-                LogicClock.getInstance().increment(req.getTimestamp());
-                Response response = eventHandler.onReceived(req);
-                _writeBuf[1] = JsonProtocolManager.getInstance().writeGzip(response);
-                _writeBuf[0].putInt(_writeBuf[1].remaining());
-                _writeBuf[0].flip();
-
-                switchMode(SelectionKey.OP_WRITE);
-            } catch (IOException e) {
-                reset();
-                e.printStackTrace();
-            }
+            switchMode(SelectionKey.OP_WRITE);
         }
         else {
             reset();
@@ -135,7 +123,6 @@ public class ServerReadWriteHandler implements Runnable, Attachable {
     }
 
     private void write() throws IOException {
-        LogicClock.getInstance().increment();
         this.socketChannel.write(_writeBuf);
 
         if (!_writeBuf[0].hasRemaining() && !_writeBuf[1].hasRemaining()) {

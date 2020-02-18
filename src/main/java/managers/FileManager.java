@@ -52,4 +52,10 @@ public class FileManager implements Observer {
         if (worker != null)
             worker.serve(request);
     }
+
+    public void release(Request request) {
+        FileWorker worker = map.get(request.getHeader());
+        if (worker != null)
+            worker.release(request);
+    }
 }

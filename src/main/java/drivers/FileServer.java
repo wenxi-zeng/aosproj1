@@ -52,6 +52,18 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
         }
     };
 
+    private SocketClient.ServerCallBack asyncServerCallBack = new SocketClient.ServerCallBack() {
+        @Override
+        public void onResponse(Request request, Response response) {
+            SimpleLog.v(request.getSender() + " receives a successful ack from " + request.getReceiver());
+        }
+
+        @Override
+        public void onFailure(Request request, String error) {
+            SimpleLog.v(request.getSender() + " receives a failed ack from " + request.getReceiver() + ", error message: " + error);
+        }
+    };
+
     public static void main(String[] args){
         if (args.length > 1)
         {
@@ -59,7 +71,7 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
             return;
         }
 
-        int daemonPort = Config.getInstance().getPort();
+        int daemonPort = Config.PORT;
         if (args.length > 0)
         {
             try
@@ -82,7 +94,7 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
             FileServer daemon = FileServer.newInstance(getAddress(), daemonPort);
             Config.with(daemon.ip, daemon.port);
             SimpleLog.with(daemon.ip, daemon.port);
-            SimpleLog.i("Daemon: " + daemonPort + " started");
+            SimpleLog.v("Daemon: " + daemonPort + " started");
             daemon.exec();
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,6 +174,7 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
 
     @Override
     public Response onReceived(Request o) {
+        SimpleLog.i(o);
         return processCommonCommand(o);
     }
 
@@ -172,7 +185,7 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
 
     public Response processCommonCommand(Request o) {
         try {
-            CommonCommand command = CommonCommand.valueOf(o.getHeader());
+            CommonCommand command = CommonCommand.valueOf(o.getType());
             return command.execute(o);
         }
         catch (IllegalArgumentException e) {
@@ -210,6 +223,11 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
                 e.printStackTrace();
             }
         }
+    }
+
+    public void send(Request request) {
+        request.setSender(Config.getInstance().getAddress());
+        send(request.getReceiver(), getPort(), request, asyncServerCallBack);
     }
 
     public void initSubscriptions() {

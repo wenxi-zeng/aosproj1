@@ -26,6 +26,7 @@ public class FileClient {
     private SocketClient.ServerCallBack callBack = new SocketClient.ServerCallBack() {
         @Override
         public void onResponse(Request request, Response response) {
+            LogicClock.getInstance().increment(response.getTimestamp());
             SimpleLog.v(id + " receives a successful ack from " + request.getReceiver());
             semaphore.release();
         }
@@ -49,7 +50,7 @@ public class FileClient {
 
     public FileClient() {
         socketClient = SocketClient.getInstance();
-        semaphore = new Semaphore(1);
+        semaphore = new Semaphore(0);
     }
 
     private PhysicalNode choseServer() {
@@ -79,7 +80,7 @@ public class FileClient {
             Request request = new Request()
                     .withAttachment(id + " message #" + (101 - remainingActions) + " -- " + node.getId() + " at " + timestamp)
                     .withHeader(file)
-                    .withReceiver(node.getId())
+                    .withReceiver(node.getAddress())
                     .withSender(id)
                     .withTimestamp(timestamp)
                     .withType(CommonCommand.APPEND.name());

@@ -9,7 +9,7 @@ public class Config {
 
     private final static String CONFIG_PATH = "config.txt";
 
-    private final static int PORT = 50050;
+    public final static int PORT = 50050;
 
     private final static String[] FILES = new String[] {"f1.txt", "f2.txt", "f3.txt", "f4.txt"};
 

@@ -1,18 +1,19 @@
 package managers;
 
 import commonmodels.transport.Request;
+import util.Config;
 import util.FileHelper;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FileWorker implements Runnable{
 
-    private final BlockingQueue<Request> queue;
+    private final Queue<Request> queue;
 
     private final Semaphore semaphore;
 
@@ -21,7 +22,10 @@ public class FileWorker implements Runnable{
     private List<Long> clocks;
 
     public FileWorker() {
-        this.queue = new LinkedBlockingQueue<>();
+        this.queue = new PriorityQueue<>((a, b) ->
+                (int)(a.getTimestamp() - b.getTimestamp() != 0 ?
+                        a.getTimestamp() - b.getTimestamp() :
+                        a.getSender().compareTo(b.getSender())));
         this.semaphore = new Semaphore(0);
         this.working = new AtomicBoolean(true);
     }
@@ -30,13 +34,15 @@ public class FileWorker implements Runnable{
     public void run() {
         while (working.get()) {
             try {
-                Request request = queue.take();
 
-                while (!ackFromAll(request)) {
+                while (queue.isEmpty() ||
+                        !queue.peek().getSender().equals(Config.getInstance().getAddress()) ||
+                        !ackFromAll(queue.peek())) {
                     semaphore.acquire();
                 }
 
-                operateFile(request);
+                if (!queue.isEmpty() && queue.peek().getSender().equals(Config.getInstance().getAddress()))
+                    operateFile(queue.poll());
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -63,11 +69,13 @@ public class FileWorker implements Runnable{
     }
 
     public void serve(Request request) {
-        try {
-            queue.put(request);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        queue.add(request);
+    }
+
+    public void release(Request request) {
+        if (!queue.isEmpty() &&
+                queue.peek().getSender().equals(request.getSender()))
+            queue.poll();
     }
 
     public void setClocks(List<Long> clocks) {
