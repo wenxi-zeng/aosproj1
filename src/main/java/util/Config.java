@@ -56,6 +56,10 @@ public class Config {
         return address;
     }
 
+    public String getId() {
+        return address == null ? "" : address.split(".")[0];
+    }
+
     public int getPort() {
         return port;
     }

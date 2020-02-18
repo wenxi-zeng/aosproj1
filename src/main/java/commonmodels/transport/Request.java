@@ -182,4 +182,12 @@ public class Request extends Transportable implements Serializable
 
         return command.trim();
     }
+
+    public String getSenderId() {
+        return sender == null ? "" : sender.split(".")[0];
+    }
+
+    public String getReceiverId() {
+        return receiver == null ? "" : receiver.split(".")[0];
+    }
 }

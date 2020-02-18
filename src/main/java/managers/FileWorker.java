@@ -52,7 +52,7 @@ public class FileWorker implements Runnable{
 
     private void operateFile(Request request) {
         try {
-            FileHelper.append(request.getHeader(), request.getAttachment());
+            FileHelper.append(Config.getInstance().getId(), request.getHeader(), request.getAttachment());
             if (request.getProcessed() != null)
                 request.getProcessed().release();
         } catch (IOException e) {

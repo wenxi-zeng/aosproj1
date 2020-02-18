@@ -34,6 +34,10 @@ public class FileHelper {
         fileWriter.close();
     }
 
+    public static void append(String dir, String filename, String line) throws IOException {
+        append(dir.isEmpty() ? filename : dir + File.separator + filename, line);
+    }
+
     public static boolean exist(String filename) {
         File file = new File(filename);
         return file.exists();

@@ -6,6 +6,7 @@ import commonmodels.transport.Request;
 import commonmodels.transport.Response;
 import drivers.FileServer;
 import managers.FileManager;
+import util.Config;
 import util.FileHelper;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ public enum CommonCommand implements Command {
         @Override
         public Response execute(Request request) {
             try {
-                FileHelper.append(request.getHeader(), request.getAttachment());
+                FileHelper.append(Config.getInstance().getId(), request.getHeader(), request.getAttachment());
             } catch (IOException e) {
                 e.printStackTrace();
             }
