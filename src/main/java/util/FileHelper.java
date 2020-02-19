@@ -35,11 +35,16 @@ public class FileHelper {
     }
 
     public static void append(String dir, String filename, String line) throws IOException {
+        mkdir(dir);
         append(dir.isEmpty() ? filename : dir + File.separator + filename, line);
     }
 
     public static boolean exist(String filename) {
         File file = new File(filename);
         return file.exists();
+    }
+
+    public static boolean mkdir(String dir) {
+        return new File(dir).mkdirs();
     }
 }

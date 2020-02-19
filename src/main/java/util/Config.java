@@ -42,6 +42,7 @@ public class Config {
     public static void with(String address, int port) {
         Config.getInstance().address = address;
         Config.getInstance().port = port;
+        Config.getInstance().loadConfig();
     }
 
     public static void deleteInstance() {
@@ -57,7 +58,7 @@ public class Config {
     }
 
     public String getId() {
-        return address == null ? "" : address.split(".")[0];
+        return address == null ? "" : address.split("\\.")[0];
     }
 
     public int getPort() {
@@ -74,6 +75,8 @@ public class Config {
 
     private void loadConfig() {
         try {
+            servers = new ArrayList<>();
+            files = new ArrayList<>();
             List<String> lines = FileHelper.read(CONFIG_PATH);
             for (String line : lines) {
                 String[] pair = line.split(" ");

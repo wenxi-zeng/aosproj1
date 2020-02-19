@@ -18,26 +18,31 @@ public enum CommonCommand implements Command {
         @Override
         public Response execute(Request request) {
             LogicClock.getInstance().increment();
-            request.withType(CommonCommand.REQUEST.name())
+            Request mutexRequest = new Request().withType(CommonCommand.REQUEST.name())
                     .withTimestamp(LogicClock.getInstance().getClock());
-            FileServer.getInstance().broadcast(request);
+            FileServer.getInstance().asyncBroadcast(mutexRequest);
 
-            FileManager.getInstance().serve(request);
+            Request localRecord = (Request) request.clone();
+            localRecord.withSender(Config.getInstance().getAddress())
+                    .withTimestamp(LogicClock.getInstance().getClock());
+            FileManager.getInstance().serve(localRecord);
             try {
-                request.setProcessed(new Semaphore(0));
-                request.getProcessed().acquire();
+                localRecord.setProcessed(new Semaphore(0));
+                localRecord.getProcessed().acquire();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            request.withType(CommonCommand.APPEND_ONLY.name())
+            Request appendRequest = (Request) request.clone();
+            appendRequest.withType(CommonCommand.APPEND_ONLY.name())
                     .withTimestamp(LogicClock.getInstance().getClock());
-            FileServer.getInstance().broadcast(request);
+            FileServer.getInstance().broadcast(appendRequest);
 
             LogicClock.getInstance().increment();
-            request.withType(CommonCommand.RELEASE.name())
+            Request releaseRequest = (Request) request.clone();
+            releaseRequest.withType(CommonCommand.RELEASE.name())
                     .withTimestamp(LogicClock.getInstance().getClock());
-            FileServer.getInstance().broadcast(request);
+            FileServer.getInstance().broadcast(releaseRequest);
 
             return new Response(request)
                     .withMessage("successful append")

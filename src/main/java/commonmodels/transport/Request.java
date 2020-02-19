@@ -5,12 +5,13 @@ import commonmodels.Transportable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import socket.SocketClient;
 
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
-public class Request extends Transportable implements Serializable
+public class Request extends Transportable implements Serializable, Cloneable
 {
 
     private String header;
@@ -23,6 +24,8 @@ public class Request extends Transportable implements Serializable
     private transient Semaphore processed;
 
     private transient float processTime = .0f;
+
+    private transient SocketClient.ServerCallBack requestCallBack;
 
     private final static long serialVersionUID = -2162237185763801887L;
 
@@ -184,10 +187,27 @@ public class Request extends Transportable implements Serializable
     }
 
     public String getSenderId() {
-        return sender == null ? "" : sender.split(".")[0];
+        return sender == null ? "" : sender.split("\\.")[0];
     }
 
     public String getReceiverId() {
-        return receiver == null ? "" : receiver.split(".")[0];
+        return receiver == null ? "" : receiver.split("\\.")[0];
+    }
+
+    public SocketClient.ServerCallBack getRequestCallBack() {
+        return requestCallBack;
+    }
+
+    public void setRequestCallBack(SocketClient.ServerCallBack requestCallBack) {
+        this.requestCallBack = requestCallBack;
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
     }
 }

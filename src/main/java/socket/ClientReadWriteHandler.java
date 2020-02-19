@@ -69,10 +69,16 @@ public class ClientReadWriteHandler implements Runnable, ClientHandler {
         Transportable o = JsonProtocolManager.getInstance().readGzip(byteArray);
         if (o instanceof Response) {
             Response resp = (Response) o;
-            callBack.onResponse(currentData, resp);
+            if (currentData.getRequestCallBack() == null)
+                callBack.onResponse(currentData, resp);
+            else
+                currentData.getRequestCallBack().onResponse(currentData, resp);
         }
         else {
-            callBack.onFailure(currentData, String.valueOf(o));
+            if (currentData.getRequestCallBack() == null)
+                callBack.onFailure(currentData, String.valueOf(o));
+            else
+                currentData.getRequestCallBack().onFailure(currentData, String.valueOf(o));
         }
     }
 

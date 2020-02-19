@@ -19,31 +19,28 @@ public class FileClient {
 
     private SocketClient socketClient;
 
-    private String id;
-
     private Semaphore semaphore;
 
     private SocketClient.ServerCallBack callBack = new SocketClient.ServerCallBack() {
         @Override
         public void onResponse(Request request, Response response) {
             LogicClock.getInstance().increment(response.getTimestamp());
-            SimpleLog.v(id + " receives a successful ack from " + request.getReceiver());
+            SimpleLog.v(request.getSenderId() + " receives a successful ack from " + request.getReceiverId());
             semaphore.release();
         }
 
         @Override
         public void onFailure(Request request, String error) {
-            SimpleLog.v(id + " receives a failed ack from " + request.getReceiver() + ", error message: " + error);
+            SimpleLog.v(request.getSenderId() + " receives a failed ack from " + request.getReceiverId() + ", error message: " + error);
             semaphore.release();
         }
     };
 
     public static void main(String[] args) {
         FileClient client = new FileClient();
-        if (args.length == 0)
-            client.id = getAddress();
-        else
-            client.id = args[0];
+        String address = getAddress();
+        Config.with(address, 50050);
+        SimpleLog.with(address, 50050);
 
         client.start();
     }
@@ -78,14 +75,14 @@ public class FileClient {
             long timestamp = LogicClock.getInstance().getClock();
 
             Request request = new Request()
-                    .withAttachment(id + " message #" + (101 - remainingActions) + " -- " + node.getId() + " at " + timestamp)
+                    .withAttachment(Config.getInstance().getId() + " message #" + (101 - remainingActions) + " -- " + node.getId() + " at " + timestamp + "\n")
                     .withHeader(file)
                     .withReceiver(node.getAddress())
-                    .withSender(id)
+                    .withSender(Config.getInstance().getAddress())
                     .withTimestamp(timestamp)
                     .withType(CommonCommand.APPEND.name());
 
-            SimpleLog.v(id + " requests: " + " '" + request.getAttachment() + "'");
+            SimpleLog.v(Config.getInstance().getId() + " requests: " + request.getReceiverId() + " to append " + file);
             socketClient.send(node.getAddress(), node.getPort(), request, callBack);
             try {
                 semaphore.acquire();
@@ -98,7 +95,7 @@ public class FileClient {
     }
 
     public void start() {
-        SimpleLog.v(id + " " + "starts at time: " + LogicClock.getInstance().getClock());
+        SimpleLog.v(Config.getInstance().getId() + " " + "starts at time: " + LogicClock.getInstance().getClock());
         generateRequest();
         onFinished();
         System.exit(0);
