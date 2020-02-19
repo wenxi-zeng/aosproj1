@@ -23,6 +23,8 @@ public class Config {
 
     private int port;
 
+    private String id;
+
     public Config() {
         loadConfig();
     }
@@ -58,7 +60,11 @@ public class Config {
     }
 
     public String getId() {
-        return address == null ? "" : address.split("\\.")[0];
+        return id == null ? address.split("\\.")[0] : id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public int getPort() {
@@ -80,8 +86,11 @@ public class Config {
             List<String> lines = FileHelper.read(CONFIG_PATH);
             for (String line : lines) {
                 String[] pair = line.split(" ");
-                PhysicalNode node = new PhysicalNode(pair[0], pair[1], PORT);
-                if (node.getAddress().equals(address)) continue;
+                PhysicalNode node = new PhysicalNode(pair[0], pair[1], port);
+                if (node.getAddress().equals(address)) {
+                    this.id = node.getId();
+                    continue;
+                }
                 servers.add(node);
             }
 

@@ -30,7 +30,7 @@ public class FileHelper {
 
     public static void append(String filename, String line) throws IOException {
         FileWriter fileWriter = new FileWriter(filename, true);
-        fileWriter.write(line);
+        fileWriter.write(line + "\n");
         fileWriter.close();
     }
 

@@ -3,7 +3,6 @@ package managers;
 import commonmodels.transport.Request;
 import util.Config;
 import util.FileHelper;
-import util.SimpleLog;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,10 +39,6 @@ public class FileWorker implements Runnable{
                         !queue.peek().getSender().equals(Config.getInstance().getAddress()) ||
                         !ackFromAll(queue.peek())) {
                     semaphore.acquire();
-                    if (!queue.isEmpty()) {
-                        SimpleLog.i("queue head: " + queue.peek().getSender() + ", node address: " + Config.getInstance().getAddress() + ", head clock: " + queue.peek().getTimestamp());
-                        SimpleLog.i(ackFromAll(queue.peek()));
-                    }
                 }
 
                 if (!queue.isEmpty() && queue.peek().getSender().equals(Config.getInstance().getAddress()))

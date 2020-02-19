@@ -16,6 +16,8 @@ abstract class RequestMixin {
             @JsonProperty("header") String header,
             @JsonProperty("sender") String sender,
             @JsonProperty("receiver") String receiver,
+            @JsonProperty("senderId") String senderId,
+            @JsonProperty("receiverId") String receiverId,
             @JsonProperty("type") String type,
             @JsonProperty("attachment") String attachment,
             @JsonProperty("timestamp") long timestamp
@@ -23,6 +25,8 @@ abstract class RequestMixin {
     @JsonProperty("header") abstract String getHeader();
     @JsonProperty("sender") abstract String getSender();
     @JsonProperty("receiver") abstract String getReceiver();
+    @JsonProperty("senderId") abstract String getSenderId();
+    @JsonProperty("receiverId") abstract String getReceiverId();
     @JsonProperty("type") abstract String getType();
     @JsonProperty("attachment") abstract String getAttachment();
     @JsonProperty("timestamp") abstract long getTimestamp();

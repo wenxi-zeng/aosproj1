@@ -8,6 +8,7 @@ import drivers.FileServer;
 import managers.FileManager;
 import util.Config;
 import util.FileHelper;
+import util.SimpleLog;
 
 import java.io.IOException;
 import java.util.concurrent.Semaphore;
@@ -17,6 +18,8 @@ public enum CommonCommand implements Command {
     APPEND {
         @Override
         public Response execute(Request request) {
+            SimpleLog.v(Config.getInstance().getId() + " receives: \"" + request.getAttachment() + "\" "  + "for file #" + request.getHeader() + " at time: " + request.getTimestamp());
+
             LogicClock.getInstance().increment();
             Request mutexRequest = new Request().withType(CommonCommand.REQUEST.name())
                     .withTimestamp(LogicClock.getInstance().getClock());
@@ -87,7 +90,8 @@ public enum CommonCommand implements Command {
             LogicClock.getInstance().increment();
             request.withType(CommonCommand.ACK.name())
                     .withTimestamp(LogicClock.getInstance().getClock())
-                    .withReceiver(request.getSender());
+                    .withReceiver(request.getSender())
+                    .withReceiverId(request.getSenderId());
             FileServer.getInstance().send(request);
 
             return new Response(request)

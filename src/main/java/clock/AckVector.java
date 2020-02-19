@@ -42,7 +42,6 @@ public class AckVector extends Observable {
 
     public void updateClock(String node, long clock) {
         this.vector.put(node, clock);
-        SimpleLog.i(toString());
         this.setChanged();
         this.notifyObservers(getClocks());
     }

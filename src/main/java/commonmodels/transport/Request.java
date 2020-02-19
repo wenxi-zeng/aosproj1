@@ -20,6 +20,8 @@ public class Request extends Transportable implements Serializable, Cloneable
     private String type;
     private String attachment;
     private long timestamp;
+    private String receiverId;
+    private String senderId;
 
     private transient Semaphore processed;
 
@@ -187,11 +189,29 @@ public class Request extends Transportable implements Serializable, Cloneable
     }
 
     public String getSenderId() {
-        return sender == null ? "" : sender.split("\\.")[0];
+        return senderId == null ? sender.split("\\.")[0] : senderId;
     }
 
     public String getReceiverId() {
-        return receiver == null ? "" : receiver.split("\\.")[0];
+        return receiverId == null ? receiver.split("\\.")[0] : receiverId;
+    }
+
+    public void setReceiverId(String receiverId) {
+        this.receiverId = receiverId;
+    }
+
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+
+    public Request withReceiverId(String receiverId) {
+        this.receiverId = receiverId;
+        return this;
+    }
+
+    public Request withSenderId(String senderId) {
+        this.senderId = senderId;
+        return this;
     }
 
     public SocketClient.ServerCallBack getRequestCallBack() {

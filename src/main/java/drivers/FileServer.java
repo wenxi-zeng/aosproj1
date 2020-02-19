@@ -1,6 +1,7 @@
 package drivers;
 
 import clock.AckVector;
+import clock.LogicClock;
 import commands.CommonCommand;
 import commonmodels.PhysicalNode;
 import commonmodels.transport.InvalidRequestException;
@@ -41,16 +42,13 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
     private SocketClient.ServerCallBack serverCallBack = new SocketClient.ServerCallBack() {
         @Override
         public void onResponse(Request request, Response response) {
-            SimpleLog.i("========================================");
-            SimpleLog.i(request);
-            SimpleLog.i(response);
-            SimpleLog.i("========================================");
+            SimpleLog.i(Config.getInstance().getId() + " sent " + request.getType() + " to " + request.getReceiverId() + " at time: " + request.getTimestamp() + " successfully");
             semaphore.release();
         }
 
         @Override
         public void onFailure(Request request, String error) {
-            SimpleLog.v(request.getSenderId() + " receives a failed ack from " + request.getReceiverId() + ", error message: " + error);
+            SimpleLog.i(Config.getInstance().getId() + " sent " + request.getType() + " to " + request.getReceiverId() + " at time: " + request.getTimestamp() + " failed, error message: " + error);
             semaphore.release();
         }
     };
@@ -58,15 +56,12 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
     private SocketClient.ServerCallBack asyncServerCallBack = new SocketClient.ServerCallBack() {
         @Override
         public void onResponse(Request request, Response response) {
-            SimpleLog.i("*********************************");
-            SimpleLog.i(request);
-            SimpleLog.i(response);
-            SimpleLog.i("*********************************");
+            SimpleLog.i(Config.getInstance().getId() + " sent " + request.getType() + " to " + request.getReceiverId() + " at time: " + request.getTimestamp() + " successfully");
         }
 
         @Override
         public void onFailure(Request request, String error) {
-            SimpleLog.v(request.getSenderId() + " receives a failed ack from " + request.getReceiverId() + ", error message: " + error);
+            SimpleLog.i(Config.getInstance().getId() + " sent " + request.getType() + " to " + request.getReceiverId() + " at time: " + request.getTimestamp() + " failed, error message: " + error);
         }
     };
 
@@ -100,7 +95,6 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
             FileServer daemon = FileServer.newInstance(getAddress(), daemonPort);
             Config.with(daemon.ip, daemon.port);
             SimpleLog.with(daemon.ip, daemon.port);
-            SimpleLog.v("Daemon: " + daemonPort + " started");
             daemon.exec();
         } catch (Exception e) {
             e.printStackTrace();
@@ -164,6 +158,7 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
 
     public void exec() {
         initSubscriptions();
+        SimpleLog.v(Config.getInstance().getId() + " starts at time " + LogicClock.getInstance().getClock());
         new Thread(this.socketServer).start();
     }
 
@@ -218,17 +213,17 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
     }
 
     public void broadcast(Request request) {
-        SimpleLog.i("start broadcasting, target size: " + Config.getInstance().getServers());
         for (PhysicalNode server : Config.getInstance().getServers()) {
             try {
                 Request copy = (Request) request.clone();
-                copy.setSender(Config.getInstance().getAddress());
-                copy.setReceiver(server.getAddress());
+                copy.withSender(Config.getInstance().getAddress())
+                        .withReceiver(server.getAddress())
+                        .withReceiverId(server.getId())
+                        .withSenderId(Config.getInstance().getId());
                 copy.setRequestCallBack(serverCallBack);
                 send(server.getAddress(), server.getPort(), copy, asyncServerCallBack);
-                SimpleLog.i("Sending to " + copy.getReceiverId());
+                SimpleLog.i(Config.getInstance().getId() + " sending " + request.getType() + " to " + copy.getReceiverId() + " at time: " + request.getTimestamp());
                 semaphore.acquire();
-                SimpleLog.i("Sending to " + copy.getReceiverId() + " finished");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -238,14 +233,19 @@ public class FileServer implements SocketServer.EventHandler, SocketClient.Serve
     public void asyncBroadcast(Request request) {
         for (PhysicalNode server : Config.getInstance().getServers()) {
             Request copy = (Request) request.clone();
-            copy.setSender(Config.getInstance().getAddress());
-            copy.setReceiver(server.getAddress());
+            copy.withSender(Config.getInstance().getAddress())
+                    .withReceiver(server.getAddress())
+                    .withReceiverId(server.getId())
+                    .withSenderId(Config.getInstance().getId());
+            SimpleLog.i(Config.getInstance().getId() + " sending " + request.getType() + " to " + copy.getReceiverId() + " at time: " + request.getTimestamp());
             send(server.getAddress(), server.getPort(), copy, asyncServerCallBack);
         }
     }
 
     public void send(Request request) {
-        request.setSender(Config.getInstance().getAddress());
+        request.withSender(Config.getInstance().getAddress())
+                    .withSenderId(Config.getInstance().getId());
+        SimpleLog.i(Config.getInstance().getId() + " sending " + request.getType() + " to " + request.getReceiverId() + " at time: " + request.getTimestamp());
         send(request.getReceiver(), getPort(), request, asyncServerCallBack);
     }
 
